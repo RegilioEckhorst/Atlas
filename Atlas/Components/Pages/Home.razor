@@ -14,7 +14,6 @@
 <button @onclick="GetExercises">Add workout</button>
 
 <p>
-    Uw workout is:
     @if (excersices != null)
     {
         @foreach (var Ex in excersices)
@@ -41,6 +40,8 @@ else
         }
     </ul>
 }
+
+
 
 
 @code {

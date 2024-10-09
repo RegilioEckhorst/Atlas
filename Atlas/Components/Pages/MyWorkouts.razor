@@ -1,0 +1,83 @@
+﻿@page "/workouts"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+@inject HttpClient Http
+
+
+@attribute [Authorize]
+<h3>My Workouts: </h3>
+<EditForm Model="newExercise" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="form-group">
+        <label for="exerciseName">Exercise Name</label>
+        <InputText id="exerciseName" class="form-control" @bind-Value="newExercise.ExerciseName" />
+    </div>
+    <button type="submit" class="btn btn-primary">Add Exercise</button>
+</EditForm>
+
+
+@if (exerciseItems == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <ul>
+        @foreach (var item in exerciseItems)
+        {
+            <li>@item.ExerciseName</li>
+        }
+    </ul>
+}
+
+@code {
+    private List<Exercise> exerciseItems = new();
+    private Exercise newExercise = new Exercise();
+    private bool isSuccess = false;
+    private string errorMessage = null;
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            isSuccess = false;
+            errorMessage = null;
+
+            HttpResponseMessage response = await Http.PostAsJsonAsync("api/Exercises", newExercise);
+
+            if (response.IsSuccessStatusCode)
+            {
+                isSuccess = true;
+                newExercise = new Exercise();
+                GetExercises();
+            }
+            else
+            {
+                errorMessage = "Failed to add exercise.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error: {ex.Message}";
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        GetExercises();
+    }
+
+    private async void GetExercises()
+    {
+        try
+        {
+            var result = exerciseItems = await Http.GetFromJsonAsync<List<Exercise>>("api/Exercises");
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+
+        }
+    }
+}
