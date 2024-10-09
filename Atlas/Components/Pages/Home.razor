@@ -1,4 +1,7 @@
 ﻿@page "/"
+@rendermode InteractiveServer
+@using Atlas
+@inject HttpClient Http
 
 <PageTitle>Home</PageTitle>
 
@@ -6,7 +9,68 @@
 
 <p>@WelcomeText</p>
 
-@code{
+
+<input @bind="exerciseName" placeholder="Enter you exercise name..." />
+<button @onclick="GetExercises">Add workout</button>
+
+<p>
+    Uw workout is:
+    @if (excersices != null)
+    {
+        @foreach (var Ex in excersices)
+        {
+            <span>@Ex.ExerciseName&nbsp;</span>
+        }
+    }
+    else
+    {
+        <span>No exercises available.</span>
+    }
+</p>
+
+@if (exerciseItems == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <ul>
+        @foreach (var item in exerciseItems)
+        {
+            <li>@item.ExerciseName</li>
+        }
+    </ul>
+}
+
+
+@code {
+    private List<Exercise> excersices = new();
     private string AtlasFitnessApp = "Atlas fitness app";
     private string WelcomeText = "Welcome to Atlas' fitness app";
+    private string exerciseName = string.Empty;
+    private string submittedExerciseName = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        Exercise exercise = new();
+        exercise.ExerciseName = "Benchpress";
+        excersices.Add(exercise);
+    }
+
+    private void SubmitName()
+    {
+        submittedExerciseName = exerciseName;
+    }
+
+    private List<Exercise> exerciseItems;
+
+    protected override async Task OnInitializedAsync()
+    {    }
+
+
+    private async void GetExercises()
+    {
+        exerciseItems = await Http.GetFromJsonAsync<List<Exercise>>("api/Exercises");
+        StateHasChanged();
+    }
 }
